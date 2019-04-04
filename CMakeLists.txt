@@ -5,21 +5,11 @@ project(tinyrpc)
 include(CheckCXXCompilerFlag)
 include(CheckLibraryExists)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}" "${PROJECT_SOURCE_DIR}/cmake")
+find_package(Boost REQUIRED COMPONENTS coroutine context thread)
 
-if (WIN32)
-	set(PROTOBUF_PROTOC_EXECUTABLE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/protobuf/protoc/win32/protoc.exe")
-else()
-	if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "aarch64")
-		set(PROTOBUF_PROTOC_EXECUTABLE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/protobuf/protoc/linux-aarch_64/protoc")
-	else()
-		if("${CMAKE_HOST_SYSTEM_NAME}" MATCHES "Darwin")
-			set(PROTOBUF_PROTOC_EXECUTABLE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/protobuf/protoc/Darwin-x86_64/protoc")
-		else()
-			set(PROTOBUF_PROTOC_EXECUTABLE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/protobuf/protoc/linux-x86_64/protoc")
-		endif()
-	endif()
-endif()
+find_package(Protobuf REQUIRED)
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}" "${PROJECT_SOURCE_DIR}/cmake")
 
 include(protobuf-generate)
 
@@ -42,9 +32,6 @@ if (MSVC)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 	add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 	add_definitions(-D_WIN32_WINNT=0x0601)
-	add_definitions(-DBOOST_ALL_STATIC_LINK)
-	add_definitions(-DBOOST_THREAD_USE_LIB)
-	add_definitions(-DBOOST_FILESYSTEM_STATIC_LINK)
 	add_definitions(-DBOOST_USE_WINAPI_VERSION=0x0601)
 	add_definitions(-DWIN32_LEAN_AND_MEAN)
 	add_definitions(-DNOMINMAX)
@@ -79,11 +66,7 @@ if (${COMPILER_HAS_COLOR})
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=always")
 endif()
 
-
 if (NOT MSVC)
-	if(NOT APPLE)
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
-	endif()
 	if (ANDROID)
 		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fPIE -pie")
 	endif()
@@ -100,21 +83,9 @@ if (NOT MSVC)
 	endif()
 endif(NOT MSVC)
 
-set(Boost_USE_STATIC_LIBS	ON)
-set(Boost_USE_STATIC_RUNTIME	ON)
-
 find_package(Threads)
 
 link_libraries(${CMAKE_THREAD_LIBS_INIT})
-
-set(BOOST_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/boost)
-
-add_definitions(-DBOOST_LOCALE_HIDE_AUTO_PTR)
-add_definitions(-DBOOST_COROUTINES_NO_DEPRECATION_WARNING)
-add_subdirectory(third_party/boost)
-
-add_subdirectory(third_party/protobuf)
-include_directories(third_party/protobuf/src)
 
 add_subdirectory(baseproto)
 include_directories(
@@ -122,10 +93,8 @@ include_directories(
 )
 link_libraries(baseproto)
 
-link_libraries(	Boost::coroutine
-		Boost::context
-		Boost::thread
-)
+include_directories(${Boost_INCLUDE_DIRS})
+link_libraries(${Boost_LIBRARIES})
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
