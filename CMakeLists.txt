@@ -2,16 +2,22 @@
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 project(tinyrpc)
 
+find_package(Boost REQUIRED COMPONENTS coroutine context thread)
+find_package(Protobuf REQUIRED)
+find_package(Threads)
+
 include(CheckCXXCompilerFlag)
 include(CheckLibraryExists)
 
-find_package(Boost REQUIRED COMPONENTS coroutine context thread)
+link_libraries(${CMAKE_THREAD_LIBS_INIT})
+link_libraries(${Boost_LIBRARIES})
 
-find_package(Protobuf REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
+include_directories(
+	${CMAKE_BINARY_DIR}/baseproto
+)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}" "${PROJECT_SOURCE_DIR}/cmake")
-
-include(protobuf-generate)
 
 if (MSVC)
 	set(CompilerFlags
@@ -83,19 +89,6 @@ if (NOT MSVC)
 	endif()
 endif(NOT MSVC)
 
-find_package(Threads)
-
-link_libraries(${CMAKE_THREAD_LIBS_INIT})
-
-add_subdirectory(baseproto)
-include_directories(
-	${CMAKE_BINARY_DIR}/baseproto
-)
-link_libraries(baseproto)
-
-include_directories(${Boost_INCLUDE_DIRS})
-link_libraries(${Boost_LIBRARIES})
-
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -105,8 +98,8 @@ if (WIN32)
 	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin/release)
 endif()
 
+add_subdirectory(baseproto)
+link_libraries(baseproto)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_subdirectory(example)
-
-
-
