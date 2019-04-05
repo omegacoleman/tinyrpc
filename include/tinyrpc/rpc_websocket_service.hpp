@@ -21,6 +21,11 @@
 
 #include "rpc_service_ptl.pb.h"
 
+#ifndef __RPC_SVC_PTL_IMP_CC_FILE
+	#define __RPC_SVC_PTL_IMP_CC_FILE
+	#include "rpc_service_ptl.pb.cc"
+#endif
+
 #include "rpc_error_code.hpp"
 
 namespace tinyrpc {

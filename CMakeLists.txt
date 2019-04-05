@@ -11,10 +11,11 @@ include(CheckLibraryExists)
 
 link_libraries(${CMAKE_THREAD_LIBS_INIT})
 link_libraries(${Boost_LIBRARIES})
+link_libraries(${PROTOBUF_LIBRARIES})
 
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(
-	${CMAKE_BINARY_DIR}/baseproto
+	${CMAKE_CURRENT_BINARY_DIR}/baseproto
 )
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}" "${PROJECT_SOURCE_DIR}/cmake")
@@ -99,7 +100,11 @@ if (WIN32)
 endif()
 
 add_subdirectory(baseproto)
-link_libraries(baseproto)
-
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-add_subdirectory(example)
+
+get_directory_property(hasParent PARENT_DIRECTORY)
+if(hasParent)
+	set(TINYRPC_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR}/baseproto PARENT_SCOPE)
+else()
+	add_subdirectory(example)
+endif()
